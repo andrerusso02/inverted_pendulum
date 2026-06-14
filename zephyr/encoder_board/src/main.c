@@ -1,5 +1,11 @@
 #include <zephyr/kernel.h>
 
+#include <zephyr/device.h>
+#include <zephyr/drivers/sensor.h>
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
+
 
 #define USBD_NODE DT_NODELABEL(usbd)
 #if DT_NODE_HAS_STATUS(USBD_NODE, okay)
@@ -52,12 +58,50 @@ int start_usb_networking(void)
 
 void main(void)
 {
-    printk("Hello from Zephyr application!\n");
+    LOG_INF("Hello from Zephyr application!");
     int err = start_usb_networking();
     if (err) {
-        printk("USB Init Failed with error: %d\n", err);
+        LOG_ERR("USB Init Failed with error: %d", err);
     }
     else {
-        printk("USB Init Succeeded.\n");
+        LOG_INF("USB Init Succeeded.");
+    }
+
+    /* Get the device binding using the compatible string */
+    const struct device *const as5600_dev = DEVICE_DT_GET_ANY(ams_as5600);
+    struct sensor_value rotation;
+    int rc;
+
+    if (as5600_dev == NULL) {
+        LOG_ERR("No device found with compatible 'ams,as5600'");
+        return;
+    }
+
+    if (!device_is_ready(as5600_dev)) {
+        LOG_ERR("Device %s is not ready", as5600_dev->name);
+        return;
+    }
+
+    LOG_INF("Successfully initialized AS5600 device: %s", as5600_dev->name);
+
+    while (1) {
+        /* Fetch the latest sample from the sensor */
+        rc = sensor_sample_fetch(as5600_dev);
+        
+        if (rc != 0) {
+            LOG_ERR("Sensor fetch failed or magnet issue: %d", rc);
+        } else {
+            /* Retrieve the rotation data */
+            rc = sensor_channel_get(as5600_dev, SENSOR_CHAN_ROTATION, &rotation);
+            if (rc == 0) {
+                /* val1 contains the integer part (degrees), val2 contains the fractional part (micro-degrees) */
+                LOG_INF("Rotation: %d.%06d degrees", rotation.val1, rotation.val2);
+            } else {
+                LOG_ERR("Failed to get sensor channel data: %d", rc);
+            }
+        }
+
+        /* Wait 10 millisecondss before reading again */
+        k_msleep(10);
     }
 }

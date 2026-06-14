@@ -17,3 +17,11 @@
         remote-mac-address = "00005E005301";  // Apparently any could work
     };
 };
+
+
+&i2c0 {
+	as5600@36 {
+		compatible = "ams,as5600";
+		reg = <0x36>;
+	};
+};
