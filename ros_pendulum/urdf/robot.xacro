@@ -1,0 +1,302 @@
+<?xml version="1.0" ?>
+
+<!-- Generated using onshape-to-robot -->
+<!-- Onshape https://cad.onshape.com/documents/aec25e004784a35842d8e9b0/w/78dcb336bdd3d929cd553c3a/e/ceb97de529eb41201314bd5a -->
+<robot name="robot">
+  <!-- Link housing -->
+  <link name="housing">
+    <inertial>
+      <origin xyz="0.0237067 -0.000271186 -0.000185467" rpy="0 0 0"/>
+      <mass value="0.195"/>
+      <inertia ixx="0.000162348" ixy="-6.9347e-08" ixz="-7.13461e-07" iyy="9.45295e-05" iyz="3.4455e-08" izz="9.68641e-05"/>
+    </inertial>
+    <!-- Part housing -->
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 -0"/>
+      <geometry>
+        <mesh filename="package://assets/housing.stl"/>
+      </geometry>
+      <material name="housing_material">
+        <color rgba="0.996078 0.996078 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5708 0 -0"/>
+      <geometry>
+        <mesh filename="package://assets/housing.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link shaft -->
+  <link name="shaft">
+    <inertial>
+      <origin xyz="0.0486873 -0 0.00116487" rpy="0 0 0"/>
+      <mass value="0.285218"/>
+      <inertia ixx="3.09982e-05" ixy="-0" ixz="8.46658e-05" iyy="0.0022823" iyz="0" izz="0.00229115"/>
+    </inertial>
+    <!-- Part motor_handle -->
+    <visual>
+      <origin xyz="-0 0 0.0392" rpy="-0 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/motor_handle.stl"/>
+      </geometry>
+      <material name="motor_handle_material">
+        <color rgba="0.498039 0.498039 0.498039 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0 0 0.0392" rpy="-0 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/motor_handle.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part bearing -->
+    <visual>
+      <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
+      <geometry>
+        <mesh filename="package://assets/bearing.stl"/>
+      </geometry>
+      <material name="bearing_material">
+        <color rgba="0.615686 0.811765 0.929412 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
+      <geometry>
+        <mesh filename="package://assets/bearing.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part encoder_plate -->
+    <visual>
+      <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
+      <geometry>
+        <mesh filename="package://assets/encoder_plate.stl"/>
+      </geometry>
+      <material name="encoder_plate_material">
+        <color rgba="0.498039 0.498039 0.498039 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
+      <geometry>
+        <mesh filename="package://assets/encoder_plate.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part fixed_handle -->
+    <visual>
+      <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
+      <geometry>
+        <mesh filename="package://assets/fixed_handle.stl"/>
+      </geometry>
+      <material name="fixed_handle_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
+      <geometry>
+        <mesh filename="package://assets/fixed_handle.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part shaft -->
+    <visual>
+      <origin xyz="0 -0 0.039" rpy="3.14159 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/shaft.stl"/>
+      </geometry>
+      <material name="shaft_material">
+        <color rgba="0.996078 0.996078 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 -0 0.039" rpy="3.14159 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/shaft.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part fixed_cap -->
+    <visual>
+      <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
+      <geometry>
+        <mesh filename="package://assets/fixed_cap.stl"/>
+      </geometry>
+      <material name="fixed_cap_material">
+        <color rgba="0.972549 0.529412 0.00392157 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
+      <geometry>
+        <mesh filename="package://assets/fixed_cap.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part encoder_plate_spacer -->
+    <visual>
+      <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
+      <geometry>
+        <mesh filename="package://assets/encoder_plate_spacer.stl"/>
+      </geometry>
+      <material name="encoder_plate_spacer_material">
+        <color rgba="0.980392 0.713725 0.00392157 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
+      <geometry>
+        <mesh filename="package://assets/encoder_plate_spacer.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part as5600_breakout_board -->
+    <visual>
+      <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
+      <geometry>
+        <mesh filename="package://assets/as5600_breakout_board.stl"/>
+      </geometry>
+      <material name="as5600_breakout_board_material">
+        <color rgba="0.819608 0.8 0.752941 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
+      <geometry>
+        <mesh filename="package://assets/as5600_breakout_board.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part makerbeam_10mm -->
+    <visual>
+      <origin xyz="-0 0 0.0392" rpy="-0 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/makerbeam_10mm.stl"/>
+      </geometry>
+      <material name="makerbeam_10mm_material">
+        <color rgba="0.760784 0.839216 0.92549 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0 0 0.0392" rpy="-0 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/makerbeam_10mm.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link bearing_axe -->
+  <link name="bearing_axe">
+    <inertial>
+      <origin xyz="0.0670267 9.60394e-06 0.0137414" rpy="0 0 0"/>
+      <mass value="0.0589167"/>
+      <inertia ixx="6.41916e-06" ixy="3.0456e-08" ixz="-9.18141e-06" iyy="0.000344996" iyz="-1.195e-09" izz="0.00034346"/>
+    </inertial>
+    <!-- Part mobile_cap -->
+    <visual>
+      <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
+      <geometry>
+        <mesh filename="package://assets/mobile_cap.stl"/>
+      </geometry>
+      <material name="mobile_cap_material">
+        <color rgba="0.231373 0.380392 0.705882 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
+      <geometry>
+        <mesh filename="package://assets/mobile_cap.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part mobile_handle -->
+    <visual>
+      <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
+      <geometry>
+        <mesh filename="package://assets/mobile_handle.stl"/>
+      </geometry>
+      <material name="mobile_handle_material">
+        <color rgba="0.647059 0.647059 0.647059 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
+      <geometry>
+        <mesh filename="package://assets/mobile_handle.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part bearing_axe -->
+    <visual>
+      <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
+      <geometry>
+        <mesh filename="package://assets/bearing_axe.stl"/>
+      </geometry>
+      <material name="bearing_axe_material">
+        <color rgba="0.647059 0.647059 0.647059 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
+      <geometry>
+        <mesh filename="package://assets/bearing_axe.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part makerbeam_10mm_2 -->
+    <visual>
+      <origin xyz="0.234 -0 -0.0295" rpy="0 -1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/makerbeam_10mm.stl"/>
+      </geometry>
+      <material name="makerbeam_10mm_2_material">
+        <color rgba="0.760784 0.839216 0.92549 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.234 -0 -0.0295" rpy="0 -1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/makerbeam_10mm.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part mobile_spacer -->
+    <visual>
+      <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
+      <geometry>
+        <mesh filename="package://assets/mobile_spacer.stl"/>
+      </geometry>
+      <material name="mobile_spacer_material">
+        <color rgba="0.8 0.74902 0.913725 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
+      <geometry>
+        <mesh filename="package://assets/mobile_spacer.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part magnet_stand -->
+    <visual>
+      <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
+      <geometry>
+        <mesh filename="package://assets/magnet_stand.stl"/>
+      </geometry>
+      <material name="magnet_stand_material">
+        <color rgba="0.231373 0.380392 0.705882 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
+      <geometry>
+        <mesh filename="package://assets/magnet_stand.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Joint from shaft to bearing_axe -->
+  <joint name="free_0" type="revolute">
+    <origin xyz="0.241369 0 -0.0111" rpy="3.14159 -0 0"/>
+    <parent link="shaft"/>
+    <child link="bearing_axe"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-100000.0" upper="100000.0" effort="400.0" velocity="100.0"/>
+  </joint>
+  <!-- Joint from housing to shaft -->
+  <joint name="gim6010" type="revolute">
+    <origin xyz="0.039 -0 -0" rpy="-0 1.5708 0"/>
+    <parent link="housing"/>
+    <child link="shaft"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-100000.0" upper="100000.0" effort="400.0" velocity="100.0"/>
+  </joint>
+</robot>
