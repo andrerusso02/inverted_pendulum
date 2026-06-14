@@ -1,0 +1,19 @@
+/ {
+	chosen {
+		zephyr,console = &snippet_cdc_acm_console_uart;
+		zephyr,shell-uart = &snippet_cdc_acm_console_uart;
+	};
+};
+
+&zephyr_udc0 {
+	snippet_cdc_acm_console_uart: snippet_cdc_acm_console_uart {
+		compatible = "zephyr,cdc-acm-uart";
+	};
+};
+
+/ {
+    cdc_ncm_eth0: cdc_ncm_eth0 { // Do we need the label?
+        compatible = "zephyr,cdc-ncm-ethernet";
+        remote-mac-address = "00005E005301";  // Apparently any could work
+    };
+};
