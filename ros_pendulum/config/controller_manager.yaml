@@ -1,0 +1,15 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 10  # Hz
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    joint_group_position_controller:
+      type: position_controllers/JointGroupPositionController
+
+joint_group_position_controller:
+  ros__parameters:
+    joints:
+      - gim6010
+    interface_name: position

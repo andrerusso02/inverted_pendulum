@@ -2,7 +2,7 @@
 
 <!-- Generated using onshape-to-robot -->
 <!-- Onshape https://cad.onshape.com/documents/aec25e004784a35842d8e9b0/w/78dcb336bdd3d929cd553c3a/e/ceb97de529eb41201314bd5a -->
-<robot name="robot">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robot">
   <!-- Link housing -->
   <link name="housing">
     <inertial>
@@ -299,4 +299,8 @@
     <axis xyz="0 0 1"/>
     <limit lower="-100000.0" upper="100000.0" effort="400.0" velocity="100.0"/>
   </joint>
+
+  <xacro:include filename="$(find ros_pendulum)/urdf/odrive_control.xacro" />
+  <xacro:odrive_control />
+  
 </robot>
