@@ -14,7 +14,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="1.5708 0 -0"/>
       <geometry>
-        <mesh filename="package://assets/housing.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/housing.stl"/>
       </geometry>
       <material name="housing_material">
         <color rgba="0.996078 0.996078 1 1"/>
@@ -23,7 +23,7 @@
     <collision>
       <origin xyz="0 0 0" rpy="1.5708 0 -0"/>
       <geometry>
-        <mesh filename="package://assets/housing.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/housing.stl"/>
       </geometry>
     </collision>
   </link>
@@ -38,7 +38,7 @@
     <visual>
       <origin xyz="-0 0 0.0392" rpy="-0 1.5708 0"/>
       <geometry>
-        <mesh filename="package://assets/motor_handle.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/motor_handle.stl"/>
       </geometry>
       <material name="motor_handle_material">
         <color rgba="0.498039 0.498039 0.498039 1"/>
@@ -47,14 +47,14 @@
     <collision>
       <origin xyz="-0 0 0.0392" rpy="-0 1.5708 0"/>
       <geometry>
-        <mesh filename="package://assets/motor_handle.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/motor_handle.stl"/>
       </geometry>
     </collision>
     <!-- Part bearing -->
     <visual>
       <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
       <geometry>
-        <mesh filename="package://assets/bearing.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/bearing.stl"/>
       </geometry>
       <material name="bearing_material">
         <color rgba="0.615686 0.811765 0.929412 1"/>
@@ -63,14 +63,14 @@
     <collision>
       <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
       <geometry>
-        <mesh filename="package://assets/bearing.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/bearing.stl"/>
       </geometry>
     </collision>
     <!-- Part encoder_plate -->
     <visual>
       <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
       <geometry>
-        <mesh filename="package://assets/encoder_plate.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/encoder_plate.stl"/>
       </geometry>
       <material name="encoder_plate_material">
         <color rgba="0.498039 0.498039 0.498039 1"/>
@@ -79,14 +79,14 @@
     <collision>
       <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
       <geometry>
-        <mesh filename="package://assets/encoder_plate.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/encoder_plate.stl"/>
       </geometry>
     </collision>
     <!-- Part fixed_handle -->
     <visual>
       <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
       <geometry>
-        <mesh filename="package://assets/fixed_handle.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/fixed_handle.stl"/>
       </geometry>
       <material name="fixed_handle_material">
         <color rgba="0.917647 0.917647 0.917647 1"/>
@@ -95,14 +95,14 @@
     <collision>
       <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
       <geometry>
-        <mesh filename="package://assets/fixed_handle.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/fixed_handle.stl"/>
       </geometry>
     </collision>
     <!-- Part shaft -->
     <visual>
       <origin xyz="0 -0 0.039" rpy="3.14159 1.5708 0"/>
       <geometry>
-        <mesh filename="package://assets/shaft.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/shaft.stl"/>
       </geometry>
       <material name="shaft_material">
         <color rgba="0.996078 0.996078 1 1"/>
@@ -111,14 +111,14 @@
     <collision>
       <origin xyz="0 -0 0.039" rpy="3.14159 1.5708 0"/>
       <geometry>
-        <mesh filename="package://assets/shaft.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/shaft.stl"/>
       </geometry>
     </collision>
     <!-- Part fixed_cap -->
     <visual>
       <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
       <geometry>
-        <mesh filename="package://assets/fixed_cap.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/fixed_cap.stl"/>
       </geometry>
       <material name="fixed_cap_material">
         <color rgba="0.972549 0.529412 0.00392157 1"/>
@@ -127,14 +127,14 @@
     <collision>
       <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
       <geometry>
-        <mesh filename="package://assets/fixed_cap.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/fixed_cap.stl"/>
       </geometry>
     </collision>
     <!-- Part encoder_plate_spacer -->
     <visual>
       <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
       <geometry>
-        <mesh filename="package://assets/encoder_plate_spacer.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/encoder_plate_spacer.stl"/>
       </geometry>
       <material name="encoder_plate_spacer_material">
         <color rgba="0.980392 0.713725 0.00392157 1"/>
@@ -143,14 +143,14 @@
     <collision>
       <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
       <geometry>
-        <mesh filename="package://assets/encoder_plate_spacer.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/encoder_plate_spacer.stl"/>
       </geometry>
     </collision>
     <!-- Part as5600_breakout_board -->
     <visual>
       <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
       <geometry>
-        <mesh filename="package://assets/as5600_breakout_board.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/as5600_breakout_board.stl"/>
       </geometry>
       <material name="as5600_breakout_board_material">
         <color rgba="0.819608 0.8 0.752941 1"/>
@@ -159,14 +159,14 @@
     <collision>
       <origin xyz="0.241369 0 -0.0111" rpy="-0 0 0"/>
       <geometry>
-        <mesh filename="package://assets/as5600_breakout_board.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/as5600_breakout_board.stl"/>
       </geometry>
     </collision>
     <!-- Part makerbeam_10mm -->
     <visual>
       <origin xyz="-0 0 0.0392" rpy="-0 1.5708 0"/>
       <geometry>
-        <mesh filename="package://assets/makerbeam_10mm.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/makerbeam_10mm.stl"/>
       </geometry>
       <material name="makerbeam_10mm_material">
         <color rgba="0.760784 0.839216 0.92549 1"/>
@@ -175,7 +175,7 @@
     <collision>
       <origin xyz="-0 0 0.0392" rpy="-0 1.5708 0"/>
       <geometry>
-        <mesh filename="package://assets/makerbeam_10mm.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/makerbeam_10mm.stl"/>
       </geometry>
     </collision>
   </link>
@@ -190,7 +190,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
       <geometry>
-        <mesh filename="package://assets/mobile_cap.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/mobile_cap.stl"/>
       </geometry>
       <material name="mobile_cap_material">
         <color rgba="0.231373 0.380392 0.705882 1"/>
@@ -199,14 +199,14 @@
     <collision>
       <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
       <geometry>
-        <mesh filename="package://assets/mobile_cap.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/mobile_cap.stl"/>
       </geometry>
     </collision>
     <!-- Part mobile_handle -->
     <visual>
       <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
       <geometry>
-        <mesh filename="package://assets/mobile_handle.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/mobile_handle.stl"/>
       </geometry>
       <material name="mobile_handle_material">
         <color rgba="0.647059 0.647059 0.647059 1"/>
@@ -215,14 +215,14 @@
     <collision>
       <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
       <geometry>
-        <mesh filename="package://assets/mobile_handle.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/mobile_handle.stl"/>
       </geometry>
     </collision>
     <!-- Part bearing_axe -->
     <visual>
       <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
       <geometry>
-        <mesh filename="package://assets/bearing_axe.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/bearing_axe.stl"/>
       </geometry>
       <material name="bearing_axe_material">
         <color rgba="0.647059 0.647059 0.647059 1"/>
@@ -231,14 +231,14 @@
     <collision>
       <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
       <geometry>
-        <mesh filename="package://assets/bearing_axe.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/bearing_axe.stl"/>
       </geometry>
     </collision>
     <!-- Part makerbeam_10mm_2 -->
     <visual>
       <origin xyz="0.234 -0 -0.0295" rpy="0 -1.5708 0"/>
       <geometry>
-        <mesh filename="package://assets/makerbeam_10mm.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/makerbeam_10mm.stl"/>
       </geometry>
       <material name="makerbeam_10mm_2_material">
         <color rgba="0.760784 0.839216 0.92549 1"/>
@@ -247,14 +247,14 @@
     <collision>
       <origin xyz="0.234 -0 -0.0295" rpy="0 -1.5708 0"/>
       <geometry>
-        <mesh filename="package://assets/makerbeam_10mm.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/makerbeam_10mm.stl"/>
       </geometry>
     </collision>
     <!-- Part mobile_spacer -->
     <visual>
       <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
       <geometry>
-        <mesh filename="package://assets/mobile_spacer.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/mobile_spacer.stl"/>
       </geometry>
       <material name="mobile_spacer_material">
         <color rgba="0.8 0.74902 0.913725 1"/>
@@ -263,14 +263,14 @@
     <collision>
       <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
       <geometry>
-        <mesh filename="package://assets/mobile_spacer.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/mobile_spacer.stl"/>
       </geometry>
     </collision>
     <!-- Part magnet_stand -->
     <visual>
       <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
       <geometry>
-        <mesh filename="package://assets/magnet_stand.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/magnet_stand.stl"/>
       </geometry>
       <material name="magnet_stand_material">
         <color rgba="0.231373 0.380392 0.705882 1"/>
@@ -279,7 +279,7 @@
     <collision>
       <origin xyz="0 0 0" rpy="-3.14159 -0 -0"/>
       <geometry>
-        <mesh filename="package://assets/magnet_stand.stl"/>
+        <mesh filename="package://ros_pendulum/urdf/assets/magnet_stand.stl"/>
       </geometry>
     </collision>
   </link>
