@@ -293,7 +293,8 @@
   </joint>
   <!-- Joint from housing to shaft -->
   <joint name="gim6010" type="revolute">
-    <origin xyz="0.039 -0 -0" rpy="-0 1.5708 0"/>
+    <!-- I had to change the pitch angle (-180 degrees) -->
+    <origin xyz="0.039 -0 -0" rpy="-0 -1.5708 0"/>
     <parent link="housing"/>
     <child link="shaft"/>
     <axis xyz="0 0 1"/>

@@ -73,11 +73,18 @@ def generate_launch_description():
         arguments=["joint_group_position_controller", "--controller-manager", "/controller_manager"],
     )
 
+    encoder_hw_node = Node(
+        package="ros_pendulum",
+        executable="encoder_hw_node",
+        output="both",
+    )
+
     nodes = [
         control_node,
         robot_state_pub_node,
         joint_state_broadcaster_spawner,
         joint_group_position_controller_spawner,
+        encoder_hw_node,
     ]
 
     return LaunchDescription(nodes)

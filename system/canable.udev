@@ -1,0 +1,1 @@
+ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="16d0", ATTRS{idProduct}=="117e", SYMLINK+="canable2", TAG+="systemd", ENV{SYSTEMD_WANTS}="canable.service"

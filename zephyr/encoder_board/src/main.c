@@ -4,6 +4,8 @@
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/logging/log.h>
 
+#include "udp_server.h"
+
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
 
@@ -56,7 +58,7 @@ int start_usb_networking(void)
 #endif
 
 
-void main(void)
+int main(void)
 {
     LOG_INF("Hello from Zephyr application!");
     int err = start_usb_networking();
@@ -66,6 +68,12 @@ void main(void)
     else {
         LOG_INF("USB Init Succeeded.");
     }
+
+    if (udp_server_init() != 0) {
+        LOG_ERR("Failed to initialize UDP server");
+        return;
+    }
+
 
     /* Get the device binding using the compatible string */
     const struct device *const as5600_dev = DEVICE_DT_GET_ANY(ams_as5600);
@@ -95,7 +103,8 @@ void main(void)
             rc = sensor_channel_get(as5600_dev, SENSOR_CHAN_ROTATION, &rotation);
             if (rc == 0) {
                 /* val1 contains the integer part (degrees), val2 contains the fractional part (micro-degrees) */
-                LOG_INF("Rotation: %d.%06d degrees", rotation.val1, rotation.val2);
+                // LOG_INF("Rotation: %d.%06d degrees", rotation.val1, rotation.val2);
+                udp_server_send(&rotation, sizeof(rotation));
             } else {
                 LOG_ERR("Failed to get sensor channel data: %d", rc);
             }
