@@ -301,7 +301,7 @@
     <limit lower="-100000.0" upper="100000.0" effort="400.0" velocity="100.0"/>
   </joint>
 
-  <xacro:include filename="$(find ros_pendulum)/urdf/odrive_control.xacro" />
+  <xacro:include filename="odrive_control.xacro" />
   <xacro:odrive_control />
   
 </robot>

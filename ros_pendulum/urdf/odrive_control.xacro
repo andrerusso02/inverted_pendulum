@@ -15,8 +15,17 @@
 
         <state_interface name="position"/>
         <state_interface name="velocity"/>
-        <state_interface name="effort"/>s
+        <state_interface name="effort"/>
       </joint>
+
+      <transmission name="gim6010_transmission">
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <actuator name="gim6010_motor" role="actuator1"/>
+        <joint name="gim6010" role="joint1">
+          <mechanical_reduction>8.0</mechanical_reduction>
+          <offset>0.0</offset>
+        </joint>
+      </transmission>
 
     </ros2_control>
   </xacro:macro>

@@ -158,7 +158,7 @@
     "axis0.controller.config.enable_gain_scheduling": false,
     "axis0.controller.config.enable_overspeed_error": false,
     "axis0.controller.config.control_mode": 3,
-    "axis0.controller.config.input_mode": 1,
+    "axis0.controller.config.input_mode": 3,
     "axis0.controller.config.vel_loop_prescaler": 1,
     "axis0.controller.config.pos_loop_prescaler": 1,
     "axis0.controller.config.pos_gain": 20.0,
