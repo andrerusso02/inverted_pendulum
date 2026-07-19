@@ -20,9 +20,16 @@ class StaticMotorController(Node):
             10
         )
         
-        self.timer = self.create_timer(0.1, self.publish_command)
+        self.timer = self.create_timer(0.1, self.update)
         
         self.target_position = 1.0 
+        
+    
+    def update(self):
+        current_time = self.get_clock().now().to_msg()
+        self.target_position = 1.0 if current_time.sec % 2 == 0 else 0.0
+        
+        self.publish_command()
 
     def publish_command(self):
         msg = Float64MultiArray()

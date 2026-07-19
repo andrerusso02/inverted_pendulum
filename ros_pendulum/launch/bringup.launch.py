@@ -91,7 +91,7 @@ def generate_launch_description():
         joint_state_broadcaster_spawner,
         joint_group_position_controller_spawner,
         encoder_hw_node,
-        # inference_node,
+        inference_node,
     ]
 
     return LaunchDescription(nodes)
