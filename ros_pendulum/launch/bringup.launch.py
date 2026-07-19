@@ -78,6 +78,12 @@ def generate_launch_description():
         executable="encoder_hw_node",
         output="both",
     )
+    
+    inference_node = Node(
+        package="ros_pendulum",
+        executable="inference_node",
+        output="both",
+    )
 
     nodes = [
         control_node,
@@ -85,6 +91,7 @@ def generate_launch_description():
         joint_state_broadcaster_spawner,
         joint_group_position_controller_spawner,
         encoder_hw_node,
+        # inference_node,
     ]
 
     return LaunchDescription(nodes)

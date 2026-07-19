@@ -27,7 +27,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'encoder_hw_node = ros_pendulum.encoder_hw_node:main'
+            'encoder_hw_node = ros_pendulum.encoder_hw_node:main',
+            'inference_node = ros_pendulum.inference_node:main',
         ],
     },
 )

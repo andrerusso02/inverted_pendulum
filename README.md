@@ -42,6 +42,10 @@ colcon build --packages-up-to ros_pendulum
 ```bash
 sudo nmcli device set enx00005e005301 managed no && sudo ip addr add dev enx00005e005301 192.0.2.2/24
 ```
+or set it up permanently:
+```bash
+sudo nmcli connection add type ethernet ifname enx00005e005301 con-name encoder_eth ipv4.method manual ipv4.addresses 192.0.2.2/24
+```
 
 ## Control the motor manually:
 ```bash
