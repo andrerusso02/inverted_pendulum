@@ -110,7 +110,7 @@
     "axis0.config.can.controller_error_rate_ms": 0,
     "axis0.config.can.sensorless_error_rate_ms": 0,
     "axis0.config.can.encoder_count_rate_ms": 0,
-    "axis0.config.can.iq_rate_ms": 0,
+    "axis0.config.can.iq_rate_ms": 10,
     "axis0.config.can.thermistor_rate_ms": 0,
     "axis0.config.can.bus_vi_rate_ms": 0,
     "axis0.motor.fet_thermistor.config.temp_limit_lower": 75.0,

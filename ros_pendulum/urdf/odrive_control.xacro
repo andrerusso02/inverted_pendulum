@@ -10,6 +10,7 @@
 
       <joint name="gim6010">
         <param name="node_id">1</param>
+        <param name="torque_constant">0.09700000286102295</param>
       
         <command_interface name="position"/>
 

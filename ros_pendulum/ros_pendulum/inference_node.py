@@ -1,7 +1,55 @@
+from enum import StrEnum
+from dataclasses import dataclass
 import rclpy
+from typing import Any
 from rclpy.node import Node
 from std_msgs.msg import Float64MultiArray
-from sensor_msgs.msg import JointState
+from control_msgs.msg import DynamicJointState
+
+JOINT_ACTUATED = 'gim6010'
+JOINT_UNACTUATED = 'free_0'
+
+class InterfaceName(StrEnum):
+    POSITION = 'position'
+    VELOCITY = 'velocity'
+    EFFORT = 'effort'
+
+class InterfaceValues:
+    __slots__ = ['position', 'velocity', 'effort']
+
+    def __init__(self, position: float | None = None, velocity: float | None = None, effort: float | None = None) -> None:
+        self.position = position
+        self.velocity = velocity
+        self.effort = effort
+        
+    def __str__(self) -> str:
+        return f"InterfaceValues(position={self.position}, velocity={self.velocity}, effort={self.effort})"
+
+@dataclass
+class RobotState:
+    joint_actuated_values: InterfaceValues | None = None
+    joint_unactuated_values: InterfaceValues | None = None
+
+    def update_from_joint_state(self, joint_state_msg: DynamicJointState) -> None:
+        for idx, joint_name in enumerate(joint_state_msg.joint_names):
+            if joint_name == JOINT_ACTUATED:
+                self.joint_actuated_values = self._get_interface_values(joint_state_msg.interface_values[idx])
+            elif joint_name == JOINT_UNACTUATED:
+                self.joint_unactuated_values = self._get_interface_values(joint_state_msg.interface_values[idx])
+
+    @staticmethod
+    def _get_interface_values(interface_values_entry: Any) -> InterfaceValues:
+        val_map = dict(zip(interface_values_entry.interface_names, interface_values_entry.values))
+        
+        return InterfaceValues(
+            position=val_map.get(InterfaceName.POSITION.value, None),
+            velocity=val_map.get(InterfaceName.VELOCITY.value, None),
+            effort=val_map.get(InterfaceName.EFFORT.value, None)
+        )
+    
+    def __str__(self) -> str:
+        return f"RobotState(\njoint_actuated_values=\n{self.joint_actuated_values},\njoint_unactuated_values=\n{self.joint_unactuated_values})"
+
 
 class StaticMotorController(Node):
     def __init__(self):
@@ -14,15 +62,17 @@ class StaticMotorController(Node):
         )
         
         self.state_sub = self.create_subscription(
-            JointState, 
-            '/joint_states', 
-            self.state_callback, 
+            DynamicJointState, 
+            '/dynamic_joint_states', 
+            self.on_joint_state, 
             10
         )
         
         self.timer = self.create_timer(0.1, self.update)
         
         self.target_position = 1.0 
+        
+        self.robot_state = RobotState()
         
     
     def update(self):
@@ -36,19 +86,12 @@ class StaticMotorController(Node):
         msg.data = [self.target_position]
         self.cmd_pub.publish(msg)
 
-    def state_callback(self, msg: JointState):
-        try:
-            joint_idx = msg.name.index('gim6010')
-            current_pos = msg.position[joint_idx]
-            
-            self.get_logger().info(
-                f"Target: {self.target_position:.4f} | Current: {current_pos:.4f}"
-            )
-        except ValueError:
-            self.get_logger().warn("'gim6010' not found in joint_states", once=True)
-        except IndexError:
-            self.get_logger().error("Joint found, but position array is empty")
 
+    def on_joint_state(self, msg: DynamicJointState):
+        self.robot_state.update_from_joint_state(msg)
+        self.get_logger().info(f"{self.robot_state}")
+
+        
 def main(args=None):
     rclpy.init(args=args)
     node = StaticMotorController()
