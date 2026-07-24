@@ -80,6 +80,11 @@ def inpulses(scene: InteractiveScene, sim_time: float, sim_dt: float):
     rotation_action[:, motor_joint_idx] = goal
     scene[ROBOT_ENTITY_KEY].set_joint_position_target(rotation_action)
 
+def static(scene: InteractiveScene, sim_time: float, sim_dt: float):
+    """A static position for the pendulum using position targets."""
+    static_action = scene[ROBOT_ENTITY_KEY].data.default_joint_pos.clone()
+    static_action[0] = 0.0  # Set the first joint to a static position
+    scene[ROBOT_ENTITY_KEY].set_joint_position_target(static_action)
 
 def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
     sim_dt = sim.get_physics_dt()
@@ -110,7 +115,8 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
         #     scene.reset()
         #     print(f"[INFO]: Resetting state...")
 
-        inpulses(scene, sim_time, sim_dt)
+        # inpulses(scene, sim_time, sim_dt)
+        static(scene, sim_time, sim_dt)
 
         scene.write_data_to_sim()
         sim.step()
@@ -122,7 +128,11 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
 def main():
     """Main function."""
     # Initialize the simulation context
-    sim_cfg = sim_utils.SimulationCfg(device=args_cli.device)
+    sim_cfg = sim_utils.SimulationCfg(
+        enable_scene_query_support=True,  # This arg and the one below let me use the "force rubber band" tool
+        device="cpu",
+        use_fabric=False,  # To make the joint states live in the property panel.
+        )
     sim = sim_utils.SimulationContext(sim_cfg)
     sim.set_camera_view([3.5, 0.0, 3.2], [0.0, 0.0, 0.5])
     # Design scene

@@ -60,10 +60,7 @@ data: [4.0]
 
 # IsaacLab
 
-Add this to activate script of isaaclab env:
-```bash
-source ~/git/inverted_pendulum/Pendulum/env.bash
-```
+In IsaacLab, motor position 0 means stick down.
 
 # Odrive
 

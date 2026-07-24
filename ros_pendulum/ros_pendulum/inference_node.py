@@ -1,3 +1,6 @@
+import time
+import numpy as np
+import onnxruntime as ort
 from enum import StrEnum
 from dataclasses import dataclass
 import rclpy
@@ -8,6 +11,34 @@ from control_msgs.msg import DynamicJointState
 
 JOINT_ACTUATED = 'gim6010'
 JOINT_UNACTUATED = 'free_0'
+
+
+CONTROL_FREQUENCY = 50.0  # Hz
+
+POLICY_PATH = '/home/andre/git/inverted_pendulum/Pendulum/logs/rsl_rl/cartpole_direct/2026-07-22_20-32-27/exported/policy.onnx'
+
+STATIC_POSITION_OFFSET_RAD = 0.0
+
+
+class JitterTracker:
+    """Tracks timer jitter by measuring real inter-callback intervals."""
+
+    def __init__(self, expected_period_ns: int, threshold_ns: int = 1_000_000) -> None:
+        self._expected_period_ns = expected_period_ns
+        self._threshold_ns = threshold_ns
+        self._last_ns: int | None = None
+
+    def log(self, log_function) -> None:
+        now = time.monotonic_ns()
+        if self._last_ns is not None:
+            actual_period_ns = now - self._last_ns
+            jitter_ns = actual_period_ns - self._expected_period_ns
+            if abs(jitter_ns) > self._threshold_ns:
+                log_function(
+                    f"Timer expected period: {self._expected_period_ns} ns, "
+                    f"actual period: {actual_period_ns} ns, jitter: {jitter_ns} ns"
+                )
+        self._last_ns = now
 
 class InterfaceName(StrEnum):
     POSITION = 'position'
@@ -51,50 +82,79 @@ class RobotState:
         return f"RobotState(\njoint_actuated_values=\n{self.joint_actuated_values},\njoint_unactuated_values=\n{self.joint_unactuated_values})"
 
 
-class StaticMotorController(Node):
+class InferenceNode(Node):
     def __init__(self):
-        super().__init__('static_motor_controller')
+        super().__init__('inference_node')
+        self.robot_state = RobotState()
         
         self.cmd_pub = self.create_publisher(
             Float64MultiArray, 
             '/joint_group_position_controller/commands', 
             10
         )
-        
         self.state_sub = self.create_subscription(
             DynamicJointState, 
             '/dynamic_joint_states', 
             self.on_joint_state, 
             10
         )
-        
-        self.timer = self.create_timer(0.1, self.update)
-        
-        self.target_position = 1.0 
-        
-        self.robot_state = RobotState()
-        
-    
-    def update(self):
-        current_time = self.get_clock().now().to_msg()
-        self.target_position = 1.0 if current_time.sec % 2 == 0 else 0.0
-        
-        self.publish_command()
 
-    def publish_command(self):
+        # Initialize ONNX session
+        self.ort_session = ort.InferenceSession(POLICY_PATH)
+        self.input_name = self.ort_session.get_inputs()[0].name
+        self.output_name = self.ort_session.get_outputs()[0].name
+
+        # Policy scaling parameters (Update these to match your Isaac Lab config)
+        self.action_scale = 1.0 
+        self.default_joint_pos = 0.0
+
+        self.timer = self.create_timer(1.0 / CONTROL_FREQUENCY, self.on_control_timer)
+        self._jitter_tracker = JitterTracker(expected_period_ns=int(self.timer.timer_period_ns))
+
+    def on_control_timer(self):
+        self._jitter_tracker.log(self.get_logger().warn)
+        
+        # Wait until state is fully populated by the subscriber
+        if self.robot_state.joint_actuated_values is None or self.robot_state.joint_unactuated_values is None:
+            return
+
+        pos_gim = self.robot_state.joint_actuated_values.position
+        vel_gim = self.robot_state.joint_actuated_values.velocity
+        pos_free = self.robot_state.joint_unactuated_values.position
+
+        # Ensure values are not None before inference
+        if None in (pos_gim, vel_gim, pos_free):
+            self.get_logger().warn("Received None values in joint states, skipping inference.")
+            return
+
+        # Construct observation vector. 
+        # WARNING: The order must perfectly match the observation group in your Isaac Lab task.
+        obs_array = np.array([[pos_gim, vel_gim, pos_free]], dtype=np.float32)
+
+        # Run ONNX inference
+        ort_outs = self.ort_session.run([self.output_name], {self.input_name: obs_array})
+        
+        # Extract raw action output
+        raw_action = float(ort_outs[0][0][0])
+
+        # Apply standard Isaac Lab scaling (target = action * scale + default_pos)
+        target_position = (raw_action * self.action_scale) + self.default_joint_pos
+        
+        self.publish_command(target_position)
+
+    def publish_command(self, target_position: float):
         msg = Float64MultiArray()
-        msg.data = [self.target_position]
+        msg.data = [target_position]
         self.cmd_pub.publish(msg)
-
 
     def on_joint_state(self, msg: DynamicJointState):
         self.robot_state.update_from_joint_state(msg)
-        self.get_logger().info(f"{self.robot_state}")
+        # self.get_logger().info(f"{self.robot_state}")
 
         
 def main(args=None):
     rclpy.init(args=args)
-    node = StaticMotorController()
+    node = InferenceNode()
     
     try:
         rclpy.spin(node)

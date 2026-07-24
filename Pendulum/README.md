@@ -1,5 +1,18 @@
 # Template for Isaac Lab Projects
 
+## Run
+
+Train:
+```bash
+python scripts/rsl_rl/train.py --task=Template-Pendulum-v0
+```
+
+Play:
+```bash
+python scripts/rsl_rl/play.py --task=Template-Pendulum-v0
+```
+
+
 ## Overview
 
 This project/repository serves as a template for building projects or extensions based on Isaac Lab.

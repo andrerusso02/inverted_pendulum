@@ -8,3 +8,5 @@
 # Ignore all other files
 .python.env
 *.json
+!tools/launch.template.json
+!tools/settings.template.json
