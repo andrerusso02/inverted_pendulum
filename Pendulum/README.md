@@ -12,6 +12,11 @@ Play:
 python scripts/rsl_rl/play.py --task=Template-Pendulum-v0
 ```
 
+Test
+```bash
+python3 scripts/zero_agent.py --task=Template-Pendulum-v0 --num_envs 1 --disable_fabric --device cpu
+```
+
 
 ## Overview
 

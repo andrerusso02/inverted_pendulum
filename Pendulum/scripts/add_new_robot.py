@@ -23,12 +23,10 @@ simulation_app = app_launcher.app
 
 import numpy as np
 import torch
+from Pendulum.tasks.manager_based.pendulum.pendulum_env_cfg import PendulumSceneCfg
 
 import isaaclab.sim as sim_utils
 from isaaclab.scene import InteractiveScene
-
-from Pendulum.tasks.manager_based.pendulum.pendulum_env_cfg import PendulumSceneCfg
-
 
 ROBOT_ENTITY_KEY = "robot"
 
@@ -123,6 +121,10 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
         sim_time += sim_dt
         count += 1
         scene.update(sim_dt)
+
+        # print position of free_0
+        # print(f"Pos: {scene[ROBOT_ENTITY_KEY].data.joint_pos[:, scene[ROBOT_ENTITY_KEY].find_joints('free_0')[0][0]].cpu().numpy()}")
+
 
 
 def main():

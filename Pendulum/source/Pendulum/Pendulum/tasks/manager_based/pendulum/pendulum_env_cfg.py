@@ -6,35 +6,30 @@
 import math
 
 import isaaclab.sim as sim_utils
+from isaaclab.actuators import ImplicitActuatorCfg
 from isaaclab.assets import ArticulationCfg, AssetBaseCfg
+from isaaclab.assets.articulation import ArticulationCfg
 from isaaclab.envs import ManagerBasedRLEnvCfg
+from isaaclab.envs.mdp.actions import JointPositionActionCfg
+from isaaclab.managers import ActionTermCfg, SceneEntityCfg
 from isaaclab.managers import EventTermCfg as EventTerm
 from isaaclab.managers import ObservationGroupCfg as ObsGroup
 from isaaclab.managers import ObservationTermCfg as ObsTerm
 from isaaclab.managers import RewardTermCfg as RewTerm
-from isaaclab.managers import SceneEntityCfg
 from isaaclab.managers import TerminationTermCfg as DoneTerm
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.utils import configclass
-
-from isaaclab.managers import ActionTermCfg
-from isaaclab.envs.mdp.actions import JointPositionActionCfg
-
-from . import mdp
-
-import isaaclab.sim as sim_utils
-from isaaclab.actuators import ImplicitActuatorCfg
-from isaaclab.assets import AssetBaseCfg
-from isaaclab.assets.articulation import ArticulationCfg
-from isaaclab.scene import InteractiveSceneCfg
 
 ##
 # Scene definition
 ##
 from isaaclab_assets.robots.cartpole import CARTPOLE_CFG
+
+from . import mdp
+
 PENDULUM_CFG = ArticulationCfg(
     spawn=sim_utils.UrdfFileCfg(
-        "/home/arusso/git/Pendulum/robot/robot.urdf",
+        "/home/andre/git/inverted_pendulum/Pendulum/robot/robot.urdf",
         force_usd_conversion=True, # force reconvert USD to ensure latest changes
         fix_base=True,
         joint_drive=sim_utils.UrdfConverterCfg.JointDriveCfg(
@@ -47,8 +42,8 @@ PENDULUM_CFG = ArticulationCfg(
         ),
         articulation_props=sim_utils.ArticulationRootPropertiesCfg(
             enabled_self_collisions=False,
-            solver_position_iteration_count=32, 
-            solver_velocity_iteration_count=32,
+            solver_position_iteration_count=4,
+            solver_velocity_iteration_count=1,
         ),
     ),
     # initial state not picked up... Works from URDF
@@ -109,6 +104,7 @@ class ActionsCfg:
             use_default_offset= False,
     )
 
+
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
@@ -129,13 +125,13 @@ class ObservationsCfg:
 
         # --- Free joint (pole) ---
         pole_pos = ObsTerm(
-            func=mdp.joint_pos,
+            func=mdp.free_joint_pos_modifier,
             params={"asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"])}
         )
-        pole_vel = ObsTerm(
-            func=mdp.joint_vel,
-            params={"asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"])}
-        )
+        # pole_vel = ObsTerm(
+        #     func=mdp.joint_vel,
+        #     params={"asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"])}
+        # )
 
         def __post_init__(self) -> None:
             self.enable_corruption = False
@@ -180,14 +176,22 @@ class RewardsCfg:
 
     # (1) Constant running reward
     alive = RewTerm(func=mdp.is_alive, weight=1.0)
+
     # (2) Failure penalty
     terminating = RewTerm(func=mdp.is_terminated, weight=-2.0)
 
+    # (3) Primary task: keep pole upright
     pole_upright = RewTerm(
         func=mdp.reward_pole_upright,
         weight=1.0,
         params={"asset_cfg": SceneEntityCfg("robot", body_names=["bearing_axe"])},
     )
+
+    # actuator_upright = RewTerm(
+    #     func=mdp.joint_pos_target_l2,
+    #     weight=-1.0,
+    #     params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"]), "target": 3.14159},
+    # )
 
     # (3) Primary task: keep pole upright
     # pole_pos = RewTerm(
@@ -199,7 +203,7 @@ class RewardsCfg:
     # (4) Shaping tasks: lower cart velocity
     actuator_vel = RewTerm(
         func=mdp.joint_vel_l1,
-        weight=-0.01,
+        weight=-0.02,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"])},
     )
     # (5) Shaping tasks: lower pole angular velocity
@@ -219,7 +223,7 @@ class TerminationsCfg:
     # (2) Too many rotations
     too_many_rotations = DoneTerm(
         func=mdp.joint_pos_out_of_manual_limit,
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"]), "bounds": (-7., 7.)},
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"]), "bounds": (-7., 7.)},
     )
 
 

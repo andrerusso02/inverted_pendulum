@@ -24,7 +24,7 @@
         <actuator name="gim6010_motor" role="actuator1"/>
         <joint name="gim6010" role="joint1">
           <mechanical_reduction>8.0</mechanical_reduction>
-          <offset>0.0</offset>
+          <offset>-0.24</offset>
         </joint>
       </transmission>
 

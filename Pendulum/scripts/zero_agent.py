@@ -47,6 +47,9 @@ def main():
     # create environment
     env = gym.make(args_cli.task, cfg=env_cfg)
 
+    # Prevent automatic 5-second timeout resets
+    env_cfg.episode_length_s = 100000.0
+
     # print info (this is vectorized environment)
     print(f"[INFO]: Gym observation space: {env.observation_space}")
     print(f"[INFO]: Gym action space: {env.action_space}")
@@ -56,10 +59,11 @@ def main():
     while simulation_app.is_running():
         # run everything in inference mode
         with torch.inference_mode():
-            # compute zero actions
+
             actions = torch.zeros(env.action_space.shape, device=env.unwrapped.device)
-            # apply actions
-            env.step(actions)
+            obs, rewards, terminated, truncated, info = env.step(actions)
+            policy_obs = obs["policy"][0]
+            print(f"Policy Observation: {policy_obs.cpu().numpy()}")
 
     # close the simulator
     env.close()

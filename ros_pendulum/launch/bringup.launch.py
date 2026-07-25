@@ -84,6 +84,12 @@ def generate_launch_description():
         executable="inference_node",
         output="both",
     )
+    
+    foxglove_bridge_node = Node(
+        package="foxglove_bridge",
+        executable="foxglove_bridge",
+        output="both",
+    )
 
     nodes = [
         control_node,
@@ -92,6 +98,7 @@ def generate_launch_description():
         joint_group_position_controller_spawner,
         encoder_hw_node,
         inference_node,
+        foxglove_bridge_node,
     ]
 
     return LaunchDescription(nodes)
