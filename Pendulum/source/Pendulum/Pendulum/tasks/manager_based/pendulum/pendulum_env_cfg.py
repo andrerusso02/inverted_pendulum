@@ -19,6 +19,7 @@ from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.managers import TerminationTermCfg as DoneTerm
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.utils import configclass
+from isaaclab.utils.noise import UniformNoiseCfg
 
 ##
 # Scene definition
@@ -48,7 +49,7 @@ PENDULUM_CFG = ArticulationCfg(
     ),
     # initial state not picked up... Works from URDF
     init_state=ArticulationCfg.InitialStateCfg(
-        pos=(0.0, 0.0, 2.0), joint_pos={"gim6010": 3.14159, "free_0": 0}
+        pos=(0.0, 0.0, 2.0), joint_pos={"gim6010": 0.0, "free_0": 0.0}
     ),
 
     actuators={
@@ -116,16 +117,19 @@ class ObservationsCfg:
         # observation terms (order preserved)
         motor_pos = ObsTerm(
             func=mdp.joint_pos,
+            noise=UniformNoiseCfg(n_min=-0.05, n_max=0.05),
             params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"])}
         )
         motor_vel = ObsTerm(
             func=mdp.joint_vel,
+            noise=UniformNoiseCfg(n_min=-0.1, n_max=0.1),
             params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"])}
         )
 
         # --- Free joint (pole) ---
         pole_pos = ObsTerm(
             func=mdp.free_joint_pos_modifier,
+            noise=UniformNoiseCfg(n_min=-0.05, n_max=0.05),
             params={"asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"])}
         )
         # pole_vel = ObsTerm(
@@ -134,7 +138,7 @@ class ObservationsCfg:
         # )
 
         def __post_init__(self) -> None:
-            self.enable_corruption = False
+            self.enable_corruption = True
             self.concatenate_terms = True
 
     # observation groups
@@ -151,7 +155,7 @@ class EventCfg:
         mode="reset",
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"]),
-            "position_range": (math.pi - 0.1, math.pi + 0.1),
+            "position_range": (0.1, 0.1),
             "velocity_range": (-0.1 , 0.1),
         },
     )
@@ -161,12 +165,48 @@ class EventCfg:
         mode="reset",
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"]),
-            "position_range": (-0.25 * math.pi, 0.25 * math.pi),
-            "velocity_range": (-0.25 * math.pi, 0.25 * math.pi),
+            "position_range": (-0.1, 0.1),
+            "velocity_range": (-0.1, 0.1),
         },
     )
 
+    # 1. Mass & Inertia Randomization
+    # Varies the mass of all links by +/- 20%
+    randomize_mass = EventTerm(
+        func=mdp.randomize_rigid_body_mass,
+        mode="startup",
+        params={
+            "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
+            "mass_distribution_params": (0.8, 1.2),
+            "operation": "scale",
+        },
+    )
 
+    # 2. Joint Friction & Armature Randomization
+    # Real joints experience stiction and varying friction profiles
+    randomize_joint_physics = EventTerm(
+        func=mdp.randomize_joint_parameters,
+        mode="startup",
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
+            "friction_distribution_params": (0.5, 1.5),
+            "armature_distribution_params": (0.5, 1.5),
+            "operation": "scale",
+        },
+    )
+
+    # 3. Actuator Gain Randomization
+    # Motor torque limits and electrical dynamics vary as motors heat up
+    randomize_actuator_gains = EventTerm(
+        func=mdp.randomize_actuator_gains,
+        mode="startup",
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"]),
+            "stiffness_distribution_params": (0.8, 1.2),
+            "damping_distribution_params": (0.8, 1.2),
+            "operation": "scale",
+        },
+    )
 
 
 
@@ -187,11 +227,6 @@ class RewardsCfg:
         params={"asset_cfg": SceneEntityCfg("robot", body_names=["bearing_axe"])},
     )
 
-    # actuator_upright = RewTerm(
-    #     func=mdp.joint_pos_target_l2,
-    #     weight=-1.0,
-    #     params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"]), "target": 3.14159},
-    # )
 
     # (3) Primary task: keep pole upright
     # pole_pos = RewTerm(
@@ -207,12 +242,17 @@ class RewardsCfg:
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"])},
     )
     # (5) Shaping tasks: lower pole angular velocity
-    pole_joint_vel = RewTerm(
-        func=mdp.joint_vel_l1,
-        weight=-0.005,
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"])},
-    )
+    # pole_joint_vel = RewTerm(
+    #     func=mdp.joint_vel_l1,
+    #     weight=-0.005,
+    #     params={"asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"])},
+    # )
 
+    # actuator_upright = RewTerm(
+    #     func=mdp.joint_pos_target_l2,
+    #     weight=-0.1,
+    #     params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"]), "target": 3.14159},
+    # )
 
 @configclass
 class TerminationsCfg:
@@ -226,6 +266,11 @@ class TerminationsCfg:
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"]), "bounds": (-7., 7.)},
     )
 
+    too_many_rotations_free_0 = DoneTerm(
+        func=mdp.joint_pos_out_of_manual_limit,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"]), "bounds": (-14., 14.)},
+    )
+
 
 ##
 # Environment configuration
@@ -235,7 +280,7 @@ class TerminationsCfg:
 @configclass
 class PendulumEnvCfg(ManagerBasedRLEnvCfg):
     # Scene settings
-    scene: PendulumSceneCfg = PendulumSceneCfg(num_envs=4096, env_spacing=4.0)
+    scene: PendulumSceneCfg = PendulumSceneCfg(num_envs=6000, env_spacing=1.0)
     # Basic settings
     observations: ObservationsCfg = ObservationsCfg()
     actions: ActionsCfg = ActionsCfg()
@@ -248,10 +293,10 @@ class PendulumEnvCfg(ManagerBasedRLEnvCfg):
     def __post_init__(self) -> None:
         """Post initialization."""
         # general settings
-        self.decimation = 8
+        self.decimation = 2
         self.episode_length_s = 5
         # viewer settings
         self.viewer.eye = (8.0, 0.0, 5.0)
         # simulation settings
-        self.sim.dt = 1 / 400
+        self.sim.dt = 1 / 200
         self.sim.render_interval = self.decimation

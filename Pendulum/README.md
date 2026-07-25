@@ -18,6 +18,11 @@ python3 scripts/zero_agent.py --task=Template-Pendulum-v0 --num_envs 1 --disable
 ```
 
 
+Follow
+```bash
+tensorboard --logdir=logs
+```
+
 ## Overview
 
 This project/repository serves as a template for building projects or extensions based on Isaac Lab.

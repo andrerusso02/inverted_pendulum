@@ -55,6 +55,7 @@ def main():
     print(f"[INFO]: Gym action space: {env.action_space}")
     # reset environment
     env.reset()
+
     # simulate environment
     while simulation_app.is_running():
         # run everything in inference mode
@@ -63,7 +64,13 @@ def main():
             actions = torch.zeros(env.action_space.shape, device=env.unwrapped.device)
             obs, rewards, terminated, truncated, info = env.step(actions)
             policy_obs = obs["policy"][0]
-            print(f"Policy Observation: {policy_obs.cpu().numpy()}")
+            # print(f"Policy Observation: {policy_obs.cpu().numpy()}")
+
+        # Extract and print terms for environment 0
+        reward_terms = env.unwrapped.reward_manager.get_active_iterable_terms(env_idx=0)
+        for term_name, term_values in reward_terms:
+            print(f"Term '{term_name}': {term_values[0]:.4f}")
+        print()
 
     # close the simulator
     env.close()

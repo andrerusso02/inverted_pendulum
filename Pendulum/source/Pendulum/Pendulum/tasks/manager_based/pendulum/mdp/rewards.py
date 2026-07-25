@@ -63,6 +63,9 @@ def reward_pole_upright(
     # L2
     reward = 1.0 - angle_error / torch.pi                     # (N,)
 
+    # square
+    reward = reward * reward
+
     # print(f"Debug reward - Angle error (deg): {(angle_error * 180 / torch.pi).cpu().numpy()}, Reward: {reward.cpu().numpy()}")
 
     return reward

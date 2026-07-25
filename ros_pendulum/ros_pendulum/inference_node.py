@@ -17,9 +17,9 @@ JOINT_ACTUATED = 'gim6010'
 JOINT_UNACTUATED = 'free_0'
 
 
-CONTROL_FREQUENCY = 50.0  # Hz
+CONTROL_FREQUENCY = 100.0  # Hz
 
-POLICY_PATH = '/home/andre/git/inverted_pendulum/Pendulum/logs/rsl_rl/cartpole_direct/2026-07-25_14-49-49/exported/policy.onnx'
+POLICY_PATH = '/home/andre/git/inverted_pendulum/Pendulum/logs/rsl_rl/cartpole_direct/2026-07-25_20-04-54/exported/policy.onnx'
 
 STATIC_POSITION_OFFSET_RAD = 0.0
 
