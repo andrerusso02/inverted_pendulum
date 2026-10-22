@@ -19,7 +19,8 @@ JOINT_UNACTUATED = 'free_0'
 
 CONTROL_FREQUENCY = 100.0  # Hz
 
-POLICY_PATH = '/home/andre/git/inverted_pendulum/Pendulum/logs/rsl_rl/cartpole_direct/2026-07-25_20-04-54/exported/policy.onnx'
+# POLICY_PATH = '/home/andre/git/inverted_pendulum/Pendulum/logs/rsl_rl/cartpole_direct/2026-07-26_10-17-42/exported/policy.onnx'
+POLICY_PATH = "/home/andre/git/inverted_pendulum/Pendulum/logs/rsl_rl/cartpole_direct/2026-10-21_20-54-49/exported/policy.onnx"
 
 STATIC_POSITION_OFFSET_RAD = 0.0
 
@@ -123,6 +124,7 @@ class InferenceNode(Node):
             self.robot_state.joint_actuated_values.position,
             self.robot_state.joint_actuated_values.velocity,
             self.robot_state.joint_unactuated_values.position,
+            self.robot_state.joint_unactuated_values.velocity,
         ):
             self.get_logger().warn("Received None values in joint states, skipping inference.")
             return
@@ -131,6 +133,7 @@ class InferenceNode(Node):
             "gim_pos": self.robot_state.joint_actuated_values.position,
             "gim_vel": self.robot_state.joint_actuated_values.velocity,
             "free_pos": self.robot_state.joint_unactuated_values.position,
+            "free_vel": self.robot_state.joint_unactuated_values.velocity,
         })
         
         self.publish_command(outputs["gim_pos"])

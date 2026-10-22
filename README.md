@@ -34,7 +34,7 @@ sudo udevadm trigger
 ```bash
 cd ~/pendulum_ws
 rosdep install --from-paths src -y --ignore-src
-colcon build --packages-up-to ros_pendulum
+colcon build --packages-up-to --symlink-install ros_pendulum
 ```
 
 ## Before running
@@ -55,7 +55,7 @@ ros2 topic pub /joint_group_position_controller/commands std_msgs/msg/Float64Mul
       size: 1
       stride: 1
   data_offset: 0
-data: [4.0]
+data: [0.5]'
 ```
 
 # IsaacLab

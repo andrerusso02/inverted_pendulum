@@ -33,7 +33,7 @@ def build_pendulum_inference_pipeline(
 
     return inference_pipeline.InferencePipeline(
         inference_engine=engine,
-        input_names=["gim_pos", "gim_vel", "free_pos"],
+        input_names=["gim_pos", "gim_vel", "free_pos", "free_vel"],
         output_names=["gim_pos"],
         observation_modifiers={},
         output_modifiers={},

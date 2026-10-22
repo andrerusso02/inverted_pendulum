@@ -31,6 +31,7 @@ from . import mdp
 PENDULUM_CFG = ArticulationCfg(
     spawn=sim_utils.UrdfFileCfg(
         "/home/andre/git/inverted_pendulum/Pendulum/robot/robot.urdf",
+        merge_fixed_joints=False,
         force_usd_conversion=True, # force reconvert USD to ensure latest changes
         fix_base=True,
         joint_drive=sim_utils.UrdfConverterCfg.JointDriveCfg(
@@ -116,26 +117,82 @@ class ObservationsCfg:
 
         # observation terms (order preserved)
         motor_pos = ObsTerm(
-            func=mdp.joint_pos,
+            func=mdp.delayed_observation,
             noise=UniformNoiseCfg(n_min=-0.05, n_max=0.05),
-            params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"])}
+            params={
+                "asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"]),
+                                "base_func": mdp.joint_pos,
+                "latency_choices": [1, 2],
+                "obs_name": "motor_pos",
+            }
         )
         motor_vel = ObsTerm(
-            func=mdp.joint_vel,
+            func=mdp.delayed_observation,
             noise=UniformNoiseCfg(n_min=-0.1, n_max=0.1),
-            params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"])}
+            params={
+                "asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"]),
+                "base_func": mdp.joint_vel,
+                "latency_choices": [1, 2],
+                "obs_name": "motor_vel",
+            }
         )
 
         # --- Free joint (pole) ---
         pole_pos = ObsTerm(
-            func=mdp.free_joint_pos_modifier,
+            func=mdp.delayed_observation,
             noise=UniformNoiseCfg(n_min=-0.05, n_max=0.05),
-            params={"asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"])}
+            params={
+                "asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"]),
+                "base_func": mdp.joint_pos,
+                "latency_choices": [1, 2, 3],
+                "obs_name": "pole_pos",
+            }
         )
-        # pole_vel = ObsTerm(
-        #     func=mdp.joint_vel,
-        #     params={"asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"])}
-        # )
+        pole_vel = ObsTerm(
+            func=mdp.delayed_observation,
+            noise=UniformNoiseCfg(n_min=-0.15, n_max=0.15),
+            params={
+                "asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"]),
+                "base_func": mdp.joint_vel,
+                "latency_choices": [1, 2, 3],
+                "obs_name": "pole_vel",
+            }
+        )
+
+        action_history = ObsTerm(
+            func=mdp.last_action,
+            history_length=3,
+            flatten_history_dim=True
+        )
+
+
+        gim6010_pos_observation_history = ObsTerm(
+            func=mdp.joint_pos,
+            params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"])},
+            history_length=1,
+            flatten_history_dim=True
+        )
+
+        gim6010_vel_observation_history = ObsTerm(
+            func=mdp.joint_vel,
+            params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"])},
+            history_length=1,
+            flatten_history_dim=True
+        )
+
+        pole_pos_observation_history = ObsTerm(
+            func=mdp.joint_pos,
+            params={"asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"])},
+            history_length=1,
+            flatten_history_dim=True
+        )
+
+        pole_vel_observation_history = ObsTerm(
+            func=mdp.joint_vel,
+            params={"asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"])},
+            history_length=1,
+            flatten_history_dim=True
+        )
 
         def __post_init__(self) -> None:
             self.enable_corruption = True
@@ -263,13 +320,13 @@ class TerminationsCfg:
     # (2) Too many rotations
     too_many_rotations = DoneTerm(
         func=mdp.joint_pos_out_of_manual_limit,
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"]), "bounds": (-7., 7.)},
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"]), "bounds": (-2., 2.)},
     )
 
-    too_many_rotations_free_0 = DoneTerm(
-        func=mdp.joint_pos_out_of_manual_limit,
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"]), "bounds": (-14., 14.)},
-    )
+    # too_many_rotations_free_0 = DoneTerm(
+    #     func=mdp.joint_pos_out_of_manual_limit,
+    #     params={"asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"]), "bounds": (-14., 14.)},
+    # )
 
 
 ##

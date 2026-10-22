@@ -71,7 +71,7 @@ int main(void)
 
     if (udp_server_init() != 0) {
         LOG_ERR("Failed to initialize UDP server");
-        return;
+        return 0;
     }
 
 
@@ -82,12 +82,12 @@ int main(void)
 
     if (as5600_dev == NULL) {
         LOG_ERR("No device found with compatible 'ams,as5600'");
-        return;
+        return 0;
     }
 
     if (!device_is_ready(as5600_dev)) {
         LOG_ERR("Device %s is not ready", as5600_dev->name);
-        return;
+        return 0;
     }
 
     LOG_INF("Successfully initialized AS5600 device: %s", as5600_dev->name);
@@ -110,7 +110,7 @@ int main(void)
             }
         }
 
-        /* Wait 10 millisecondss before reading again */
-        k_msleep(10);
+        /* Wait 1 millisecondss before reading again */
+        k_msleep(1);
     }
 }

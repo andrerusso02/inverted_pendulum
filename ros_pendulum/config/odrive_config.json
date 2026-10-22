@@ -135,7 +135,7 @@
     "axis0.motor.config.motor_type": 0,
     "axis0.motor.config.current_lim": 60.0,
     "axis0.motor.config.current_lim_margin": 8.0,
-    "axis0.motor.config.torque_lim": 0.5,
+    "axis0.motor.config.torque_lim": 0.3,
     "axis0.motor.config.max_duty": 0.8500000238418579,
     "axis0.motor.config.inverter_temp_limit_lower": 100.0,
     "axis0.motor.config.inverter_temp_limit_upper": 120.0,
