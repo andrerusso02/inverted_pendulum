@@ -11,7 +11,10 @@ from control_msgs.msg import DynamicJointState
 from rclpy.node import Node
 from std_msgs.msg import Float64MultiArray
 
-from ros_pendulum import pendulum_inference_pipeline
+from ros_pendulum.pendulum_inference_pipeline import (
+    PendulumPipelineInput,
+    build_pendulum_inference_pipeline,
+)
 
 JOINT_ACTUATED = 'gim6010'
 JOINT_UNACTUATED = 'free_0'
@@ -104,7 +107,7 @@ class InferenceNode(Node):
             10
         )
         
-        self._inference_pipeline = pendulum_inference_pipeline.build_pendulum_inference_pipeline(
+        self._inference_pipeline = build_pendulum_inference_pipeline(
             policy_path=POLICY_PATH,
             log_function=self.get_logger().info,
             use_fake=False
@@ -129,14 +132,14 @@ class InferenceNode(Node):
             self.get_logger().warn("Received None values in joint states, skipping inference.")
             return
 
-        outputs = self._inference_pipeline.execute({
-            "gim_pos": self.robot_state.joint_actuated_values.position,
-            "gim_vel": self.robot_state.joint_actuated_values.velocity,
-            "free_pos": self.robot_state.joint_unactuated_values.position,
-            "free_vel": self.robot_state.joint_unactuated_values.velocity,
-        })
-        
-        self.publish_command(outputs["gim_pos"])
+        output = self._inference_pipeline.infer(PendulumPipelineInput(
+            gim_pos=self.robot_state.joint_actuated_values.position,
+            gim_vel=self.robot_state.joint_actuated_values.velocity,
+            free_pos=self.robot_state.joint_unactuated_values.position,
+            free_vel=self.robot_state.joint_unactuated_values.velocity,
+        ))
+
+        self.publish_command(output.gim_pos)
 
     def publish_command(self, target_position: float):
         msg = Float64MultiArray()

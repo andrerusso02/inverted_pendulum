@@ -1,14 +1,49 @@
+from abc import ABC, abstractmethod
 from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Protocol
 
 import onnxruntime as ort
 
 # from leapp import InferenceManager
 
-ModifierFunc = Callable[[float], float]
+
+@dataclass
+class PipelineInput(ABC):
+    pass
 
 
-from collections.abc import Callable
-from typing import Protocol
+@dataclass
+class PipelineOutput(ABC):
+    @classmethod
+    @abstractmethod
+    def from_action(cls, action: 'Action') -> 'PipelineOutput':
+        pass
+
+
+@dataclass
+class Action(ABC):
+    @classmethod
+    @abstractmethod
+    def from_vector(cls, vector: list[float]) -> 'Action':
+        pass
+
+
+@dataclass
+class Observation(ABC):
+    
+    @classmethod
+    @abstractmethod
+    def create(cls) -> 'Observation':
+        pass
+
+    @abstractmethod
+    def update(self, previous_action: Action | None, pipeline_input: PipelineInput) -> None:
+        """Refresh from the latest sample. ``previous_action`` is None on the first tick."""
+
+    @abstractmethod
+    def to_vector(self) -> list[float]:
+        pass
 
 
 class InferenceEngine(Protocol):
@@ -40,45 +75,39 @@ class OnnxEngine:
         )
 
     def infer(self, inputs: list[float]) -> list[float]:
-        return self._ort_session.run([self._output_name], {self._input_name: [inputs]})[0][0]
+        raw = self._ort_session.run([self._output_name], {self._input_name: [inputs]})[0][0]
+        return [float(v) for v in raw]
+
 
 class LeappEngine:
     pass
+
 
 class InferencePipeline:
     def __init__(
         self,
         inference_engine: InferenceEngine,
-        input_names: list[str],
-        output_names: list[str],
-        observation_modifiers: dict[str, ModifierFunc],
-        output_modifiers: dict[str, ModifierFunc],
+        observation_cls: type[Observation],
+        output_cls: type[PipelineOutput],
+        action_cls: type[Action],
         log_function: Callable[[str], None],
     ) -> None:
         self._inference_engine = inference_engine
+        self._output_cls = output_cls
+        self._action_cls = action_cls
         self.log_function = log_function
 
-        self._input_keys = tuple(input_names)
-        self._output_keys = tuple(output_names)
+        self.previous_action: Action | None = None
+        self.observation: Observation = observation_cls.create()
 
-        self._input_modifiers = tuple(
-            observation_modifiers.get(key, lambda x: x) for key in self._input_keys
+    def infer(self, pipeline_input: PipelineInput) -> PipelineOutput:
+        self.observation.update(
+            previous_action=self.previous_action,
+            pipeline_input=pipeline_input,
         )
-        self._output_modifiers = tuple(
-            output_modifiers.get(key, lambda x: x) for key in self._output_keys
-        )
 
-    def execute(self, inputs: dict[str, float]) -> dict[str, float]:
-        modified_inputs = [
-            mod(inputs[key])
-            for key, mod in zip(self._input_keys, self._input_modifiers)
-        ]
+        output_vector = self._inference_engine.infer(self.observation.to_vector())
+        action = self._action_cls.from_vector(output_vector)
+        self.previous_action = action
 
-        raw_outputs = self._inference_engine.infer(modified_inputs)
-
-        return {
-            key: mod(out)
-            for key, mod, out in zip(
-                self._output_keys, self._output_modifiers, raw_outputs
-            )
-        }
+        return self._output_cls.from_action(action)
