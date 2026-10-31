@@ -2,6 +2,8 @@ from collections.abc import Callable
 
 import onnxruntime as ort
 
+# from leapp import InferenceManager
+
 ModifierFunc = Callable[[float], float]
 
 
@@ -11,6 +13,19 @@ from typing import Protocol
 
 class InferenceEngine(Protocol):
     def infer(self, inputs: list[float]) -> list[float]: ...
+
+
+class FakeEngine:
+    def __init__(self, log_function: Callable[[str], None]) -> None:
+        self._log_function = log_function
+        self._log_function("FakeInference initialized.")
+
+    def infer(self, inputs: list[float]) -> list[float]:
+        input_summary = "Values received for inference:\n" + "\n".join(
+            f" - {v}" for v in inputs
+        )
+        self._log_function(input_summary)
+        return [0.0]
 
 
 class OnnxEngine:
@@ -25,10 +40,10 @@ class OnnxEngine:
         )
 
     def infer(self, inputs: list[float]) -> list[float]:
-        return self._ort_session.run([self._output_name], {self._input_name: [inputs]})[
-            0
-        ][0]
+        return self._ort_session.run([self._output_name], {self._input_name: [inputs]})[0][0]
 
+class LeappEngine:
+    pass
 
 class InferencePipeline:
     def __init__(
