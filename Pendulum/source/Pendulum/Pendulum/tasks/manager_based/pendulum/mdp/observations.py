@@ -13,9 +13,8 @@ def free_joint_pos_modifier(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = 
     return wrap_to_pi(asset.data.joint_pos[:, asset_cfg.joint_ids])
 
 
-
 def delayed_observation(
-    env, 
+    env,
     asset_cfg: SceneEntityCfg,
     base_func: callable,
     latency_choices: list[int],

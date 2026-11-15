@@ -73,3 +73,11 @@ Flash settings:
 ```bash
 odrivetool restore-config config.json
 ```
+
+# Encoder boards
+
+Monitor USD packets
+
+```bash
+tcpdump -n udp port 5005 -i enx00005e005301
+```
