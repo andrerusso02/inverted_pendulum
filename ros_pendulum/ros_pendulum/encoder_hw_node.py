@@ -53,9 +53,15 @@ class VelocityEstimator:
 
     def update(self, angle, current_time):
         if self._last_pos is not None and self._last_time is not None:
-            delta_pos = angle - self._last_pos
+            # The angle stream is wrapped to +-pi, so a naive difference spikes to
+            # +-2*pi/dt whenever the pole crosses the wrap (measured: 1824 rad/s in the
+            # 11-08 bag). Wrap the delta instead, and clamp: real pole speeds stay well
+            # under 40 rad/s (swing-up included), so anything beyond the clamp is a
+            # packet-loss artifact that would poison the policy's velocity history.
+            delta_pos = wrap_around_pi(angle - self._last_pos)
             delta_time = (current_time - self._last_time).nanoseconds / 1e9
-            self._velocity = delta_pos / delta_time
+            if delta_time > 1e-4:
+                self._velocity = max(-60.0, min(60.0, delta_pos / delta_time))
 
         self._last_pos = angle
         self._last_time = current_time

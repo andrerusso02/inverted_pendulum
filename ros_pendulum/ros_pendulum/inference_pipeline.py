@@ -15,10 +15,9 @@ class PipelineInput(ABC):
 
 @dataclass
 class PipelineOutput(ABC):
-    @classmethod
     @abstractmethod
-    def from_action(cls, action: 'Action') -> 'PipelineOutput':
-        pass
+    def update(self, action: 'Action') -> None:
+        """Mutate in place. The pipeline owns one long-lived instance and returns it."""
 
 
 @dataclass
@@ -88,17 +87,26 @@ class InferencePipeline:
         self,
         inference_engine: InferenceEngine,
         observation_cls: type[Observation],
-        output_cls: type[PipelineOutput],
+        output: PipelineOutput,  # long lived
         action_cls: type[Action],
         log_function: Callable[[str], None],
     ) -> None:
         self._inference_engine = inference_engine
-        self._output_cls = output_cls
+        self._output = output
         self._action_cls = action_cls
         self.log_function = log_function
 
         self.previous_action: Action | None = None
         self.observation: Observation = observation_cls.create()
+
+    @property
+    def output(self) -> PipelineOutput:
+        return self._output
+
+    def reset(self) -> None:
+        """Clear observation history and previous action (e.g. after a state dropout)."""
+        self.observation = type(self.observation).create()
+        self.previous_action = None
 
     def infer(self, pipeline_input: PipelineInput) -> PipelineOutput:
         self.observation.update(
@@ -110,4 +118,6 @@ class InferencePipeline:
         action = self._action_cls.from_vector(output_vector)
         self.previous_action = action
 
-        return self._output_cls.from_action(action)
+        self._output.update(action)
+
+        return self._output
