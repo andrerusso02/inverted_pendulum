@@ -11,7 +11,7 @@ from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, R
 @configclass
 class PPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 32
-    max_iterations = 400
+    max_iterations = 3000
     save_interval = 50
     experiment_name = "cartpole_direct"
     policy = RslRlPpoActorCriticCfg(
@@ -26,13 +26,20 @@ class PPORunnerCfg(RslRlOnPolicyRunnerCfg):
         value_loss_coef=1.0,
         use_clipped_value_loss=True,
         clip_param=0.2,
-        entropy_coef=0.005,
+        # 11-08 run: mean_std collapsed 0.98 -> 0.07 (entropy -1.13) and pole_upright plateaued
+        # at ~0.65-0.75, then regressed. More entropy bonus keeps exploration alive.
+        # 0.02 over-corrected: std inflated past 2.0 (full-scale flailing through the +-2 clip)
+        # because the entropy gradient 0.02/sigma out-earns the upright gradient. 0.01 splits
+        # the difference between collapse (0.005) and inflation (0.02).
+        entropy_coef=0.01,
         num_learning_epochs=5,
         num_mini_batches=4,
         learning_rate=1.0e-3,
         schedule="adaptive",
         gamma=0.99,
         lam=0.95,
-        desired_kl=0.01,
+        # Adaptive schedule rode the LR up to its 1e-2 clamp early (10x init) while std collapsed,
+        # which destabilised the late-training reward. Tighter KL target keeps updates smaller.
+        desired_kl=0.005,
         max_grad_norm=1.0,
     )

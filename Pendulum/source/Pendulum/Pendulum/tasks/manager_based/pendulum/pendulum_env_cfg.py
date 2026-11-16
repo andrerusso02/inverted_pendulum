@@ -10,7 +10,7 @@ from isaaclab.actuators import ImplicitActuatorCfg
 from isaaclab.assets import ArticulationCfg, AssetBaseCfg
 from isaaclab.assets.articulation import ArticulationCfg
 from isaaclab.envs import ManagerBasedRLEnvCfg
-from isaaclab.envs.mdp.actions import JointPositionActionCfg
+from isaaclab.envs.mdp.actions import EMAJointPositionToLimitsActionCfg, JointPositionActionCfg
 from isaaclab.managers import ActionTermCfg, SceneEntityCfg
 from isaaclab.managers import EventTermCfg as EventTerm
 from isaaclab.managers import ObservationGroupCfg as ObsGroup
@@ -56,12 +56,23 @@ PENDULUM_CFG = ArticulationCfg(
     actuators={
         "motor_actuator": ImplicitActuatorCfg(
             joint_names_expr=["gim6010"],
-            effort_limit=11.0,  # N.m (Actual motor rated 11 N.m peak, 5 N.m continuous)
-            effort_limit_sim=11.0,
-            velocity_limit=21.0,  # rad/s (200 RPM, actual motor rated 195-242 RPM)
-            velocity_limit_sim=21.0,
-            stiffness=2.0,
-            damping=0.1,
+            # Real drive chain (11-14): ros2_control position interface -> ODrive in
+            # CONTROL_MODE_POSITION_CONTROL + INPUT_MODE_PASSTHROUGH ("direct"), i.e. the
+            # ODrive internal cascade pos_gain(20) -> vel PI (vel_gain 0.1, Kt 0.097,
+            # gear_ratio 8) -> torque_lim 0.3 N.m motor-side. Output-referred equivalent PD:
+            #   k_eff = pos_gain * vel_gain * Kt * gear^2 = 20*0.1*0.097*64 ~= 12.4 N.m/rad
+            #   c_eff = vel_gain * Kt * gear^2            ~= 0.62 N.m/(rad/s)
+            #   tau_max = torque_lim * gear = 0.3*8 = 2.4 N.m  (bag plateau: 2.3-2.9 N.m)
+            #   vel_max = vel_limit = 30 rad/s               (bag peak: 17.3 rad/s)
+            # The old sim actuator (k=2, c=0.1, 11 N.m) was 5x softer and 4.5x stronger,
+            # so policies learned torques the hardware cannot deliver: hardware runs reached
+            # upright repeatedly but never captured.
+            effort_limit=2.4,  # N.m
+            effort_limit_sim=2.4,
+            velocity_limit=30.0,  # rad/s
+            velocity_limit_sim=30.0,
+            stiffness=12.0,
+            damping=0.6,
         ),
         "free_joint_actuator": ImplicitActuatorCfg(
             joint_names_expr=["free_0"],
@@ -98,12 +109,13 @@ class PendulumSceneCfg(InteractiveSceneCfg):
 @configclass
 class ActionsCfg:
     # joint_effort = mdp.JointEffortActionCfg(asset_name="robot", joint_names=["gim6010"], scale=11.0)
-    motor_position = JointPositionActionCfg(
+    motor_position = EMAJointPositionToLimitsActionCfg(
             asset_name="robot",
             joint_names=["gim6010"],
-            scale= 10.0,      # network output [-1, 1] × scale
-            offset= 0.0,      # added after scaling, useful to bias the neutral point
-            use_default_offset= False,
+            scale=2.0,
+            rescale_to_limits=False,   # URDF limits are +-100000, so rescaling to them is meaningless
+            clip={"gim6010": (-2.0, 2.0)},
+            alpha=0.15,
     )
 
 
@@ -115,82 +127,63 @@ class ObservationsCfg:
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
 
-        # observation terms (order preserved)
         motor_pos = ObsTerm(
-            func=mdp.delayed_observation,
+            func=mdp.DelayedObservation,
             noise=UniformNoiseCfg(n_min=-0.05, n_max=0.05),
+            history_length=2,
+            flatten_history_dim=True,
             params={
                 "asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"]),
-                                "base_func": mdp.joint_pos,
-                "latency_choices": [1, 2],
-                "obs_name": "motor_pos",
+                "base_func": mdp.joint_pos,
+                "latency_choices": [1, 2, 3],
+                "latency_group": "motor_encoder",
             }
         )
         motor_vel = ObsTerm(
-            func=mdp.delayed_observation,
-            noise=UniformNoiseCfg(n_min=-0.1, n_max=0.1),
+            func=mdp.DelayedObservation,
+            noise=UniformNoiseCfg(n_min=-0.3, n_max=0.3),
+            history_length=2,
+            flatten_history_dim=True,
             params={
                 "asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"]),
                 "base_func": mdp.joint_vel,
-                "latency_choices": [1, 2],
-                "obs_name": "motor_vel",
+                "latency_choices": [1, 2, 3],
+                "latency_group": "motor_encoder",
             }
         )
 
         # --- Free joint (pole) ---
         pole_pos = ObsTerm(
-            func=mdp.delayed_observation,
-            noise=UniformNoiseCfg(n_min=-0.05, n_max=0.05),
+            func=mdp.DelayedObservation,
+            noise=UniformNoiseCfg(func=mdp.sin_cos_uniform_noise, n_min=-0.05, n_max=0.05),
+            # 20 was worse than 22
+            history_length=22,
+            flatten_history_dim=True,
             params={
                 "asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"]),
-                "base_func": mdp.joint_pos,
-                "latency_choices": [1, 2, 3],
-                "obs_name": "pole_pos",
+                "base_func": mdp.free_joint_pos_sin_cos,
+                "latency_choices": [1, 2, 3, 4, 5],
+                "latency_group": "pole_encoder",
             }
         )
-        pole_vel = ObsTerm(
-            func=mdp.delayed_observation,
-            noise=UniformNoiseCfg(n_min=-0.15, n_max=0.15),
-            params={
-                "asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"]),
-                "base_func": mdp.joint_vel,
-                "latency_choices": [1, 2, 3],
-                "obs_name": "pole_vel",
-            }
-        )
+        # pole_vel = ObsTerm(
+        #     func=mdp.DelayedObservation,
+        #     # AS5600 is 12-bit and the node finite-differences at ~3.5-12 ms: quantization
+        #     # alone gives ~+-0.44 rad/s of velocity noise, 3x the previous +-0.15 setting.
+        #     noise=UniformNoiseCfg(n_min=-0.5, n_max=0.5),
+        #     history_length=22,
+        #     flatten_history_dim=True,
+        #     params={
+        #         "asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"]),
+        #         "base_func": mdp.joint_vel,
+        #         "latency_choices": [1, 2, 3, 4, 5],
+        #         "latency_group": "pole_encoder",
+        #     }
+        # )
 
         action_history = ObsTerm(
             func=mdp.last_action,
-            history_length=3,
-            flatten_history_dim=True
-        )
-
-
-        gim6010_pos_observation_history = ObsTerm(
-            func=mdp.joint_pos,
-            params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"])},
-            history_length=1,
-            flatten_history_dim=True
-        )
-
-        gim6010_vel_observation_history = ObsTerm(
-            func=mdp.joint_vel,
-            params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"])},
-            history_length=1,
-            flatten_history_dim=True
-        )
-
-        pole_pos_observation_history = ObsTerm(
-            func=mdp.joint_pos,
-            params={"asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"])},
-            history_length=1,
-            flatten_history_dim=True
-        )
-
-        pole_vel_observation_history = ObsTerm(
-            func=mdp.joint_vel,
-            params={"asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"])},
-            history_length=1,
+            history_length=5,
             flatten_history_dim=True
         )
 
@@ -222,19 +215,22 @@ class EventCfg:
         mode="reset",
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"]),
+            # Spread the start state over the whole hanging->upright arc instead of clustering it
+            # at hanging. free_0=0 is hanging (tilt=pi), free_0=pi is upright (tilt=0). Envs that
+            # start near upright learn to balance immediately, which is what supplies the reward
+            # gradient the all-hanging start never produced.
             "position_range": (-0.1, 0.1),
             "velocity_range": (-0.1, 0.1),
         },
     )
 
     # 1. Mass & Inertia Randomization
-    # Varies the mass of all links by +/- 20%
     randomize_mass = EventTerm(
         func=mdp.randomize_rigid_body_mass,
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "mass_distribution_params": (0.8, 1.2),
+            "mass_distribution_params": (0.7, 1.3),
             "operation": "scale",
         },
     )
@@ -253,14 +249,13 @@ class EventCfg:
     )
 
     # 3. Actuator Gain Randomization
-    # Motor torque limits and electrical dynamics vary as motors heat up
     randomize_actuator_gains = EventTerm(
         func=mdp.randomize_actuator_gains,
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"]),
-            "stiffness_distribution_params": (0.8, 1.2),
-            "damping_distribution_params": (0.8, 1.2),
+            "stiffness_distribution_params": (0.5, 2.0),
+            "damping_distribution_params": (0.5, 2.0),
             "operation": "scale",
         },
     )
@@ -272,19 +267,27 @@ class RewardsCfg:
     """Reward terms for the MDP."""
 
     # (1) Constant running reward
+    # Zeroed: with the pole starting at tilt=pi, this paid 5.0 per episode for doing nothing
+    # while `terminating` charged -2.0 for any motion that reached the +-2 rad motor bound.
+    # That made passivity the global optimum of the local basin (observed: mean_std -> 0.009,
+    # tilt stuck at 82-138 deg even after 1700 iterations). `terminating` alone still makes
+    # surviving preferable, since upright reward only accrues while the episode continues.
     alive = RewTerm(func=mdp.is_alive, weight=1.0)
 
     # (2) Failure penalty
     terminating = RewTerm(func=mdp.is_terminated, weight=-2.0)
 
     # (3) Primary task: keep pole upright
+    # Linear in tilt rather than squared: the squared form has zero gradient at tilt=pi, which is
+    # exactly where every episode starts, so it gives no signal to begin pumping.
+    # Weight 2.0 (was 1.0): the 11-08 run plateaued at mean tilt ~25-35 deg, where the squared
+    # reward is flat-ish; doubling it strengthens the gradient toward precise balance relative
+    # to the alive bonus, so "just survive" is no longer a competitive strategy.
     pole_upright = RewTerm(
         func=mdp.reward_pole_upright,
-        weight=1.0,
+        weight=2.0,
         params={"asset_cfg": SceneEntityCfg("robot", body_names=["bearing_axe"])},
     )
-
-
     # (3) Primary task: keep pole upright
     # pole_pos = RewTerm(
     #     func=mdp.joint_pos_target_l2,
@@ -293,23 +296,33 @@ class RewardsCfg:
     # )
 
     # (4) Shaping tasks: lower cart velocity
+    # Weight -0.1 (was -0.02): hardware-gentleness requirement. The 11-08 run settled at
+    # mean |motor vel| ~ 2.5 rad/s; the 5x stronger L1 tax pushes the policy toward slow,
+    # resonant pumping (~1 Hz) instead of fast corrections.
     actuator_vel = RewTerm(
         func=mdp.joint_vel_l1,
-        weight=-0.02,
+        weight=-0.1,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"])},
     )
-    # (5) Shaping tasks: lower pole angular velocity
-    # pole_joint_vel = RewTerm(
-    #     func=mdp.joint_vel_l1,
-    #     weight=-0.005,
-    #     params={"asset_cfg": SceneEntityCfg("robot", joint_names=["free_0"])},
-    # )
+    # (4c) Kapitza probe, NOT a shaping term. Keep the weight ~1e-9: any weight large enough to
+    # change behaviour is larger at random init than in a converged shake (scale x init_noise_std
+    # slams the motor into its bound), so PPO's cheapest response is to crush mean_std to ~0.03
+    # and the policy never escapes the bound-termination trap. Read it as a vibration gauge:
+    # divide the logged value by the weight for mean(alpha^2). Measured: 845 rad/s^2 RMS for the
+    # Kapitza policy vs 62 for the EMA-filtered one. Absolute values are inflated by hard
+    # velocity_limit_sim constraint spikes (torque alone caps alpha at 500 rad/s^2), so use it
+    # for relative comparisons only. The EMA action filter is what actually suppresses vibration.
+    motor_acc = RewTerm(
+        func=mdp.joint_acc_l2,
+        weight=-1.0e-9,  # MEASUREMENT ONLY: any larger weight crushes init_noise_std before the policy escapes the bound-termination trap
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"])},
+    )
 
-    # actuator_upright = RewTerm(
-    #     func=mdp.joint_pos_target_l2,
-    #     weight=-0.1,
-    #     params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"]), "target": 3.14159},
-    # )
+    actuator_centered = RewTerm(
+        func=mdp.joint_pos_target_l2,
+        weight=-0.005,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=["gim6010"]), "target": 0.},
+    )
 
 @configclass
 class TerminationsCfg:
@@ -337,7 +350,7 @@ class TerminationsCfg:
 @configclass
 class PendulumEnvCfg(ManagerBasedRLEnvCfg):
     # Scene settings
-    scene: PendulumSceneCfg = PendulumSceneCfg(num_envs=6000, env_spacing=1.0)
+    scene: PendulumSceneCfg = PendulumSceneCfg(num_envs=12000, env_spacing=1.0)
     # Basic settings
     observations: ObservationsCfg = ObservationsCfg()
     actions: ActionsCfg = ActionsCfg()
@@ -350,10 +363,10 @@ class PendulumEnvCfg(ManagerBasedRLEnvCfg):
     def __post_init__(self) -> None:
         """Post initialization."""
         # general settings
-        self.decimation = 2
+        self.decimation = 1
         self.episode_length_s = 5
         # viewer settings
         self.viewer.eye = (8.0, 0.0, 5.0)
         # simulation settings
-        self.sim.dt = 1 / 200
+        self.sim.dt = 1 / 100
         self.sim.render_interval = self.decimation

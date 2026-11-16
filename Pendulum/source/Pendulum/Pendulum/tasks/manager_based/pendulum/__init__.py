@@ -14,7 +14,7 @@ from . import agents
 
 gym.register(
     id="Template-Pendulum-v0",
-    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    entry_point=f"{__name__}.pendulum_env:PendulumEnv",
     disable_env_checker=True,
     kwargs={
         "env_cfg_entry_point": f"{__name__}.pendulum_env_cfg:PendulumEnvCfg",
